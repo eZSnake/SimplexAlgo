@@ -72,6 +72,4 @@ while iter < 1
     while i < rank(A)
         [g_t, (inv(A_B) * A)(i) / w(i)]
     end
-    gamma_temp = ;
-
 end
