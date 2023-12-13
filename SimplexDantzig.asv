@@ -19,7 +19,7 @@ function [xopt,B,message, iter, Zielfktnswert] = SimplexDantzig(A,b,c,Binit,xB)
 % Initialisierung
 % Einzelnen Schritte des Algorithmus:
 % (1) BTRAN: y^T*A_B=c_B^T / A_B^T*y=c_B
-% (2) Pricing: 
+% (2) Pricing: z_B=c_N-A_N^T*y
 % (3) FTRAN: 
 % (4) Ratiotest: 
 % (5) Update: 
@@ -28,8 +28,9 @@ tol = 10^-6;
 iter = 0;
 message = ""; %true or false
 Zielfktnswert = 0;
-xopt = 0;
 B = Binit;
+x = zeros([length(c) 1]);
+x(B) = xB;
 N = 1:length(c);
 N(B) = [];
 
@@ -51,15 +52,39 @@ while iter < 1
     %BTRAN
     A_B = A(:, B);
     c_B = c(B);
-    disp(c)
-    disp(B)
-    disp(c_B)
     y = linsolve(A_B.', c_B);
     %Pricing
     A_N = A(:, N);
     z_N = c_B - A_N.' * y;
-    %Check if 
+    %Check if optimal
     if all(z_N >= tol)
         return
     end
+    %Pick first j with z_N_j < 0 (should be at least 1 due to above)
+    j = 0;
+    while z_N(j) >= 0
+        j = j+1;
+    end
+    %FTRAN A_B*w=A(:j)
+    w = linsolve(A_B, A(:,j));
+    %Check if unbounded
+    if all(w <= tol)
+        return
+    end
+    %Ratio Test
+    gamma_arr = zeros([rank(A) 1]);
+    i = 1;
+    while i < rank(A)
+        A_tmp = A_B\A;
+        gamma_arr(i) = A_tmp(i) / w(i);
+    end
+    [~,gamma] = min(gamma_arr);
+    %Update
+    x(B) = x(B) - gamma * w;
+    x(j) = gamma;
+    N(find(j)) = [];
+    %%update bases
 end
+
+xopt = x;
+Zielfktnswert = c.'*x;
