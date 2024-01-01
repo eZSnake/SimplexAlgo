@@ -47,24 +47,23 @@ if rank(A) < A_s(1)
 end
 %check starting base
 
-while iter < 1
+while iter < 3 %impl actual end case here
     iter = iter + 1;
     %BTRAN
     A_B = A(:, B);
     c_B = c(B);
     y = linsolve(A_B.', c_B);
     %Pricing
+    c_N = c(N);
     A_N = A(:, N);
-    z_N = c_B - A_N.' * y;
+    z_N = c_N - A_N.' * y;
     %Check if optimal
     if all(z_N >= tol)
         disp('ERROR')
         return
     end
-    %Pick first j with z_N_j < 0 (should be at least 1 due to above) ->
-    %apparently not???
+    %Pick first j with z_N_j < 0 (should be at least 1 due to above)
     j = 1;
-    disp(z_N) %w Bsp1: 0 0 0 (needs to be checked)
     while z_N(j) >= 0
         j = j+1;
     end
@@ -80,14 +79,18 @@ while iter < 1
     while i < rank(A)
         A_tmp = A_B\A;
         gamma_arr(i) = A_tmp(i) / w(i);
+        i = i+1;
     end
     [~,gamma] = min(gamma_arr);
     %Update
     x(B) = x(B) - gamma * w;
     x(j) = gamma;
+    %set rest of x to 0
     N(j) = B(i); %maybe find()?
     B(i) = j;
 end
 
 xopt = x;
-Zielfktnswert = c.'*x;
+Zielfktnswert = -c.'*x;
+disp(xopt);
+disp(Zielfktnswert);
