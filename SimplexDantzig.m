@@ -88,6 +88,7 @@ while iter < 3 %impl actual end case here
     %set rest of x to 0
     N(j) = B(i); %maybe find()?
     B(i) = j;
+    %is this already replacing indexes?
 end
 
 xopt = x;
