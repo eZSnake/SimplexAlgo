@@ -38,7 +38,7 @@ N(B) = [];
 A_s = size(A);
 b_s = size(b);
 c_s = size(c);
-if A_s(1) ~= b_s(1) | A_s(2) ~= c_s(1)
+if A_s(1) ~= b_s(1) || A_s(2) ~= c_s(1)
     error('Dimensionen sind nicht kompatibel');
 end
 %check rank
@@ -46,32 +46,38 @@ if rank(A) < A_s(1)
     error('A hat keinen vollen Zeilerang');
 end
 %check starting base
+if rank(A(:, B)) < A_s(1) || any(A(:, B)\b < zeros(A_s(1), 1))
+    error('B ist keine primal zulässige Startbasis');
+end
 
-while iter < 3 %impl actual end case here
+while true %impl actual end case here
     iter = iter + 1;
     %BTRAN
     A_B = A(:, B);
     c_B = c(B);
     y = linsolve(A_B.', c_B);
     %Pricing
+    disp(N)
     c_N = c(N);
     A_N = A(:, N);
     z_N = c_N - A_N.' * y;
     %Check if optimal
-    if all(z_N >= tol)
-        disp('ERROR')
-        return
+    if all(z_N >= -tol)
+        disp('OPTIMAL')
+        break
     end
     %Pick first j with z_N_j < 0 (should be at least 1 due to above)
     j = 1;
-    while z_N(j) >= 0
+    while z_N(j) >= -tol
         j = j+1;
-    end
+    end %need to set j to diff val bc right now it's just 1, 2, 3
+    %j = N(j);
     %FTRAN A_B*w=A(:j)
     w = linsolve(A_B, A(:,j));
     %Check if unbounded
     if all(w <= tol)
-        return
+        disp('UNBOUNDED')
+        break
     end
     %Ratio Test
     gamma_arr = zeros([rank(A) 1]);
@@ -83,12 +89,17 @@ while iter < 3 %impl actual end case here
     end
     [~,gamma] = min(gamma_arr);
     %Update
+    x_s = size(x);
+    %set rest of x to 0
+    x = zeros(x_s(1), 1);
     x(B) = x(B) - gamma * w;
     x(j) = gamma;
-    %set rest of x to 0
+    %tmp_n = N(j);
     N(j) = B(i); %maybe find()?
     B(i) = j;
     %is this already replacing indexes?
+    disp(x)
+    disp('--------')
 end
 
 xopt = x;
