@@ -27,7 +27,6 @@ function [xopt,B,message, iter, Zielfktnswert] = SimplexDantzig(A,b,c,Binit,xB)
 tol = 10^-6;
 iter = 0;
 message = ""; %true or false
-%Zielfktnswert = 0;
 B = Binit;
 x = zeros([length(c) 1]);
 x(B) = xB;
@@ -69,12 +68,16 @@ while true
         break
     end
 %Impl Dantzig rule here (random)
-    %Pick first j with z_N_j < 0 (should be at least 1 due to above)
+    %Pick random j with z_N_j < 0 (should be at least 1 due to above)
     j_ind = 1;
-    while z_N(j_ind) >= -tol
+    valid_j = [];
+    while j_ind < size(z_N)
+        if z_N(j_ind) >= -tol
+            valid_j = [valid_j; j_ind];
+        end
         j_ind = j_ind+1;
-    end %need to set j to diff val bc right now it's just 1, 2, 3
-    j = N(j_ind);
+    end
+    j = N(randi([1 size(valid_j)],1,1));
     disp(j);
 
     %FTRAN A_B*w=A(:j)
@@ -88,32 +91,28 @@ while true
     end
 %Impl Dantzig rule here (Lexikographisch)
     %Ratio Test
+    % 1) find i via (A_B^-1*A)_i/w_i lexicographically smallest
+    % 2) gamma=x_B_i/w_i
     gamma_arr = Inf(rank(A), 1);
     k = 1;
     while k <= rank(A)
-        %A_tmp = A_B\A;
-        %gamma_arr(i) = A_tmp(i) / w(i);
-        if x(B(k)) > 0 && w(k) > 0
-            %gamma_arr = [gamma_arr; x(b(i)) / w(i)];
-            gamma_arr(k) = x(B(k)) / w(k);
-        end
+        A_tmp = A_B\A;
+        gamma_arr(k) = A_tmp(k) / w(k);
         k = k+1;
     end
+    %or start w/ one vector, generate next one, compare, keep smaller?
     disp(gamma_arr)
     [gamma,i] = min(gamma_arr);
 
     %Update
     x(B) = x(B) - gamma * w;
     x(j) = gamma;
-    %tmp_n = N(j);
-    N(j_ind) = B(i); %maybe find()?
+    N(j_ind) = B(i);
     B(i) = j;
-    %is this already replacing indexes?
     disp(x)
     disp('--------')
 end
 x_s = size(x);
-%set rest of x to 0
 xopt = zeros(x_s(1), 1);
 xopt(B) = x(B);
 

@@ -27,7 +27,6 @@ function [xopt,B,message, iter, Zielfktnswert] = SimplexDantzig(A,b,c,Binit,xB)
 tol = 10^-6;
 iter = 0;
 message = ""; %true or false
-%Zielfktnswert = 0;
 B = Binit;
 x = zeros([length(c) 1]);
 x(B) = xB;
@@ -72,7 +71,7 @@ while true
     j_ind = 1;
     while z_N(j_ind) >= -tol
         j_ind = j_ind+1;
-    end %need to set j to diff val bc right now it's just 1, 2, 3
+    end
     j = N(j_ind);
     disp(j);
     %FTRAN A_B*w=A(:j)
@@ -104,8 +103,8 @@ while true
     disp(x)
     disp('--------')
 end
+%set correct values for xopt
 x_s = size(x);
-%set rest of x to 0
 xopt = zeros(x_s(1), 1);
 xopt(B) = x(B);
 
