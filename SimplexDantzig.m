@@ -107,9 +107,7 @@ while true
         if abs(gamma_k - gamma) <= tol
             %Lexikografischer Vergleich
             lexikographicVec_k = A_tmp(:,k) / w(k);
-            disp(lexikographicVec_k)
             lexikographicVec_i = A_tmp(:,i) / w(i);
-            disp(lexikographicVec_i)
             for l = 1:size(lexikographicVec_k)
                 if lexikographicVec_k(l) < lexikographicVec_i(l)
                     i = k;
