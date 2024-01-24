@@ -55,16 +55,13 @@ while true
     A_B = A(:, B);
     c_B = c(B);
     y = linsolve(A_B.', c_B);
-    disp(y);
     %Pricing
     c_N = c(N);
     A_N = A(:, N);
     z_N = c_N - A_N.' * y;
-    disp(z_N);
     %Check if optimal
     if all(z_N >= -tol)
-        disp('OPTIMAL')
-        message = 'True';
+        message = 'OPTIMAL VALUE FOUND';
         break
     end
     %Pick first j with z_N_j < 0 (should be at least 1 due to above)
@@ -73,41 +70,31 @@ while true
         j_ind = j_ind+1;
     end
     j = N(j_ind);
-    disp(j);
     %FTRAN A_B*w=A(:j)
     w = linsolve(A_B, A(:,j));
-    disp(w);
     %Check if unbounded
     if all(w <= tol)
-        disp('UNBOUNDED')
-        message = 'False';
+        message = 'PROBLEM IS UNBOUNDED';
         break
     end
     %Ratio Test
     gamma_arr = Inf(rank(A), 1);
-    k = 1;
-    while k <= rank(A)
+    for k = 1:rank(A)
         if x(B(k)) > 0 && w(k) > 0
             gamma_arr(k) = x(B(k)) / w(k);
         end
-        k = k+1;
     end
-    disp(gamma_arr)
     [gamma,i] = min(gamma_arr);
     %Update
     x(B) = x(B) - gamma * w;
     x(j) = gamma;
     N(j_ind) = B(i);
+    N = sort(N);
     B(i) = j;
     B = sort(B);
-    disp(x)
-    disp('--------')
 end
-%set correct values for xopt
-x_s = size(x);
-xopt = zeros(x_s(1), 1);
-xopt(B) = x(B);
 
+%set final values for return
+xopt = x;
+xopt(N) = 0;
 Zielfktnswert = c.'*x;
-disp(xopt);
-disp(Zielfktnswert);

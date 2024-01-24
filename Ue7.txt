@@ -1,0 +1,22 @@
+Eike Rehwald, Magnus Junker (Gruppe 3)
+
+H1) Implementiert in SimplexDantzig.m
+H2/4) Bsp 1:
+	Bland: 4 Iterationen mit Zielfunktionswert -28
+	Dantzig: 4 Iterationen mit Zielfunktionswert -28
+    Bsp 2:
+	Bland: Fehlermeldung 'B ist keine primal zulässige Startbasis'
+	Dantzig: Fehlermeldung 'B ist keine primal zulässige Startbasis'
+    Bsp 3:
+	Bland: 1 Iteration mit Zielfunktionswert 84.4048
+	Dantzig: 1 Iteration mit Zielfunktionswert 84.4048
+    Bsp 4:
+	Bland: Abbruch nach 3 Iterationen mit message 'PROBLEM IS UNBOUNDED'
+	Dantzig: Abbruch nach 3 Iterationen mit message 'PROBLEM IS UNBOUNDED'
+    Bsp 5:
+	Bland: 1 Iteration mit Zielfunktionswert -10
+	Dantzig: 3 Iterationen mit Zielfunktionswert -1 (sollte eigentlich hier kreiseln aber Pricing ist mit kleinstem Index gemacht da die zufällige Auswahl nicht richtig funktionieren wollte)
+    Das Kreiseln des Verfahrens kann vermieden werden indem man eine geeignete Auswahlregel beim Pricing auswählt, wie zum Beispiel die Kleinste Index Regel
+H3) Implementiert in SimplexBland.m
+H4) siehe oben
+H5) Das Verfahren kreiselt hier nicht weil das Pricing nach der Kleinsten Index Regel gemacht wird, welche das Kreiseln vermeidet. Dies ist auch im Code kommentiert.

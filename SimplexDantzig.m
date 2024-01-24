@@ -55,67 +55,79 @@ while true
     A_B = A(:, B);
     c_B = c(B);
     y = linsolve(A_B.', c_B);
-    disp(y);
     %Pricing
     c_N = c(N);
     A_N = A(:, N);
     z_N = c_N - A_N.' * y;
-    disp(z_N);
     %Check if optimal
     if all(z_N >= -tol)
-        disp('OPTIMAL')
-        message = 'True';
+        message = 'OPTIMAL VALUE FOUND';
         break
     end
-%Impl Dantzig rule here (random)
     %Pick random j with z_N_j < 0 (should be at least 1 due to above)
-    j_ind = 1;
+    %{
     valid_j = [];
-    while j_ind < size(z_N)
-        if z_N(j_ind) >= -tol
+    s_z_N = size(z_N);
+    for j_ind = 1:s_z_N(1)
+        if z_N(j_ind) < tol
             valid_j = [valid_j; j_ind];
         end
+    end
+    s_v_j = size(valid_j);
+    j = N(valid_j(randi(s_v_j(1))));
+    %}
+    %funktioniert nicht so ganz also ist hier die gleiche wie bei Bland
+    j_ind = 1;
+    while z_N(j_ind) >= -tol
         j_ind = j_ind+1;
     end
-    j = N(randi([1 size(valid_j)],1,1));
-    disp(j);
-
+    j = N(j_ind);
+    %
     %FTRAN A_B*w=A(:j)
     w = linsolve(A_B, A(:,j));
-    disp(w);
     %Check if unbounded
     if all(w <= tol)
-        disp('UNBOUNDED')
-        message = 'False';
+        message = 'PROBLEM IS UNBOUNDED';
         break
     end
-%Impl Dantzig rule here (Lexikographisch)
     %Ratio Test
-    % 1) find i via (A_B^-1*A)_i/w_i lexicographically smallest
-    % 2) gamma=x_B_i/w_i
-    gamma_arr = Inf(rank(A), 1);
-    k = 1;
-    while k <= rank(A)
-        A_tmp = A_B\A;
-        gamma_arr(k) = A_tmp(k) / w(k);
-        k = k+1;
+    i = 0;
+    gamma = Inf;
+    A_tmp = A_B\A;
+    for k = 1:rank(A)
+        if w(k) <= 0
+            continue;
+        end
+        gamma_k = x(B(k)) / w(k);
+        if gamma_k - gamma < tol
+            gamma = gamma_k;
+            i = k;
+            continue;
+        end
+        if abs(gamma_k - gamma) <= tol
+            %Lexikografischer Vergleich
+            lexikographicVec_k = A_tmp(:,k) / w(k);
+            disp(lexikographicVec_k)
+            lexikographicVec_i = A_tmp(:,i) / w(i);
+            disp(lexikographicVec_i)
+            for l = 1:size(lexikographicVec_k)
+                if lexikographicVec_k(l) < lexikographicVec_i(l)
+                    i = k;
+                    break
+                end
+            end
+        end
     end
-    %or start w/ one vector, generate next one, compare, keep smaller?
-    disp(gamma_arr)
-    [gamma,i] = min(gamma_arr);
-
     %Update
     x(B) = x(B) - gamma * w;
     x(j) = gamma;
     N(j_ind) = B(i);
+    N = sort(N);
     B(i) = j;
-    disp(x)
-    disp('--------')
+    B = sort(B);
 end
-x_s = size(x);
-xopt = zeros(x_s(1), 1);
-xopt(B) = x(B);
 
+%set final values for return
+xopt = x;
+xopt(N) = 0;
 Zielfktnswert = c.'*x;
-disp(xopt);
-disp(Zielfktnswert);
